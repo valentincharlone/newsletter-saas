@@ -5,9 +5,8 @@ export default inngest.createFunction(
   { id: "newsletter/scheduled" },
   { event: "newsletter.schedule" },
   async ({ event, step, runId }) => {
+    const categories = ["technolgy", "business", "politics"];
     const allArticles = await step.run("fetch-news", async () => {
-      const categories = ["technolgy", "business", "politics"];
-
       return fetchArticles(categories);
     });
 
@@ -35,7 +34,7 @@ export default inngest.createFunction(
               Articles:
               ${allArticles
                 .map(
-                  (article: any, index: number) =>
+                  (article, index: number) =>
                     `${index + 1}. ${article.title}\n   ${
                       article.description
                     }\n   Source: ${article.url}\n`
