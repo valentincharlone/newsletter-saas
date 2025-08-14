@@ -2,11 +2,48 @@ import { fetchArticles } from "@/lib/news";
 import { inngest } from "../client";
 import { marked } from "marked";
 import emailjs from "@emailjs/nodejs";
+import { createClient } from "@/lib/client";
 
 export default inngest.createFunction(
-  { id: "newsletter/scheduled" },
+  {
+    id: "newsletter/scheduled",
+    cancelOn: [
+      {
+        event: "newsletter.schedule.deleted",
+        if: "async.data.userId == event.data.userId",
+      },
+    ],
+  },
   { event: "newsletter.schedule" },
   async ({ event, step, runId }) => {
+    const isUserActive = await step.run("check-user-status", async () => {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("user_preferences")
+        .select("is_active")
+        .eq("user_id", event.data.userId)
+        .single();
+
+      if (error) {
+        return false;
+      }
+
+      return data.is_active || false;
+    });
+
+    // If user has paused their newsletter, exit early
+    if (!isUserActive) {
+      console.log(
+        `User ${event.data.userId} has paused their newsletter. Skipping processing.`
+      );
+      return {
+        skipped: true,
+        reason: "User newsletter is paused",
+        userId: event.data.userId,
+        runId: runId,
+      };
+    }
+
     const categories = event.data.categories;
     const allArticles = await step.run("fetch-news", async () => {
       return fetchArticles(categories);
@@ -91,6 +128,55 @@ export default inngest.createFunction(
       }
     });
 
-    return {};
+    // 4️⃣ Schedule the next newsletter based on frequency
+    await step.run("schedule-next", async () => {
+      const now = new Date();
+      let nextScheduleTime: Date;
+
+      switch (event.data.frequency) {
+        case "daily":
+          nextScheduleTime = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+          break;
+        case "weekly":
+          nextScheduleTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          break;
+        case "biweekly":
+          nextScheduleTime = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          nextScheduleTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      }
+
+      nextScheduleTime.setHours(9, 0, 0, 0);
+
+      // Schedule the next newsletter
+      await inngest.send({
+        name: "newsletter.schedule",
+        data: {
+          userId: event.data.userId,
+          email: event.data.email,
+          categories: event.data.categories,
+          frequency: event.data.frequency,
+          scheduledFor: nextScheduleTime.toISOString(),
+        },
+        ts: nextScheduleTime.getTime(),
+      });
+
+      console.log(
+        `Next newsletter scheduled for: ${nextScheduleTime.toISOString()}`
+      );
+    });
+
+    const result = {
+      newsletter: newsletterContent,
+      articleCount: allArticles.length,
+      categories: event.data.categories,
+      emailSent: true,
+      nextScheduled: true,
+      success: true,
+      runId: runId,
+    };
+
+    return result;
   }
 );
