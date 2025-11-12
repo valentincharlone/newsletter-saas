@@ -7,11 +7,11 @@ import Link from "next/link";
 import { Card, CardBody } from "@heroui/card";
 import { Button } from "@heroui/button";
 import { Spinner } from "@heroui/spinner";
-import { Sparkles, Settings, CheckCircle2 } from "lucide-react";
-import HowWorks from "@/components/HowWorks";
-import QuickActions from "@/components/QuickActions";
+import { CheckCircle2, Settings, Sparkles } from "lucide-react";
+import SubscriptionStatus from "@/components/SubscriptionStatus";
 import SettingsPreferences from "@/components/SettingsPreferences";
-import SubscripcionStatus from "@/components/SubscripcionStatus";
+import QuickActions from "@/components/QuickActions";
+import HowWorks from "@/components/HowWorks";
 
 interface UserPreferences {
   categories: string[];
@@ -105,17 +105,17 @@ export default function DashboardPage() {
     }
   };
 
+  const handleLogout = async () => {
+    // Add logout logic here
+    router.push("/sign-in");
+  };
+
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center space-y-4">
-              <Spinner size="lg" color="primary" />
-              <p className="text-slate-600 dark:text-slate-400">
-                Cargando tu dashboard...
-              </p>
-            </div>
+            <Spinner size="lg" color="primary" />
           </div>
         </div>
       </main>
@@ -123,69 +123,83 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Message Alert */}
+    <main className="min-h-screen  dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/20">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Dashboard
+            </h1>
+          </div>
+          <p className="text-neutral-600 dark:text-neutral-400 text-lg ml-14">
+            Gestiona tu newsletter personalizado con IA
+          </p>
+        </div>
+
         {message && (
           <div
-            className={`mb-6 p-4 rounded-xl border ${
+            className={`mb-8 p-4 rounded-2xl border backdrop-blur-sm shadow-lg ${
               message.type === "error"
-                ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900 text-red-700 dark:text-red-400"
-                : "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900 text-green-700 dark:text-green-400"
+                ? "bg-red-50/80 dark:bg-red-950/30 border-red-200 dark:border-red-900 text-red-900 dark:text-red-400"
+                : "bg-green-50/80 dark:bg-green-950/30 border-green-200 dark:border-green-900 text-green-900 dark:text-green-400"
             }`}
           >
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              <p className="text-sm font-medium">{message.text}</p>
+              <CheckCircle2 className="h-5 w-5" />
+              <p className="font-medium">{message.text}</p>
             </div>
           </div>
         )}
 
-        {/* Main Title */}
-        <div className="mb-8">
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-3 text-balance">
-            Bienvenido a tu Newsletter Personalizado
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
-            Gestiona tus preferencias y mantente informado con contenido curado
-            por IA
-          </p>
-        </div>
-
         {!preferences ? (
-          <Card className="border-dashed border-2 border-slate-300 dark:border-slate-700">
+          <Card className="border-2 border-neutral-200/50 dark:border-neutral-800/50 shadow-xl bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm">
             <CardBody>
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="rounded-full bg-slate-100 dark:bg-slate-800 p-4 mb-4">
-                  <Settings className="h-8 w-8 text-slate-500 dark:text-slate-400" />
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full blur-xl opacity-30"></div>
+                  <div className="relative rounded-full bg-gradient-to-br from-blue-500 to-purple-600 p-6">
+                    <Settings className="h-10 w-10 text-white" />
+                  </div>
                 </div>
-                <p className="text-slate-600 dark:text-slate-400 mb-6 text-center">
-                  Aún no has configurado tus preferencias
+                <h3 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 mb-2">
+                  Configura tu Newsletter
+                </h3>
+                <p className="text-neutral-600 dark:text-neutral-400 mb-8 text-center max-w-md">
+                  Personaliza las categorías y la frecuencia de tu newsletter
+                  con IA
                 </p>
                 <Button
                   as={Link}
                   href="/select"
-                  color="primary"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all"
                   size="lg"
-                  startContent={<Sparkles className="h-4 w-4" />}
                 >
-                  Configurar Newsletter
+                  Comenzar Ahora
                 </Button>
               </div>
             </CardBody>
           </Card>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-3">
-            <SubscripcionStatus status={preferences.is_active} />
+          <div className="space-y-8">
+            <SubscriptionStatus status={preferences.is_active} />
 
-            <SettingsPreferences preferences={preferences} />
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <SettingsPreferences preferences={preferences} />
+              </div>
 
-            <QuickActions
-              preferences={preferences}
-              handleUpdatePreferences={handleUpdatePreferences}
-              handleDeactivateNewsletter={handleDeactivateNewsletter}
-              handleActivateNewsletter={handleActivateNewsletter}
-            />
+              <div>
+                <QuickActions
+                  preferences={preferences}
+                  handleUpdatePreferences={handleUpdatePreferences}
+                  handleDeactivateNewsletter={handleDeactivateNewsletter}
+                  handleActivateNewsletter={handleActivateNewsletter}
+                />
+              </div>
+            </div>
 
             <HowWorks />
           </div>
