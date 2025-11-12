@@ -4,19 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
-import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Card, CardBody } from "@heroui/card";
 import { Button } from "@heroui/button";
-import { Chip } from "@heroui/chip";
 import { Spinner } from "@heroui/spinner";
-import {
-  Sparkles,
-  Mail,
-  Calendar,
-  Settings,
-  Play,
-  Pause,
-  CheckCircle2,
-} from "lucide-react";
+import { Sparkles, Settings, CheckCircle2 } from "lucide-react";
+import HowWorks from "@/components/HowWorks";
+import QuickActions from "@/components/QuickActions";
+import SettingsPreferences from "@/components/SettingsPreferences";
+import SubscripcionStatus from "@/components/SubscripcionStatus";
 
 interface UserPreferences {
   categories: string[];
@@ -110,11 +105,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleLogout = async () => {
-    // Add logout logic here
-    router.push("/sign-in");
-  };
-
   if (isLoading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
@@ -186,211 +176,18 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <div className="grid gap-6 lg:grid-cols-3">
-            {/* Status Card */}
-            <Card className="lg:col-span-3 shadow-lg border-l-4 border-l-blue-500">
-              <CardHeader className="flex-row items-center justify-between pb-2">
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                    Estado del Newsletter
-                  </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Tu suscripción está configurada y lista
-                  </p>
-                </div>
-                <Chip
-                  color={preferences.is_active ? "success" : "default"}
-                  variant="flat"
-                  size="lg"
-                  className="font-semibold"
-                >
-                  {preferences.is_active ? "Activo" : "Pausado"}
-                </Chip>
-              </CardHeader>
-            </Card>
+            <SubscripcionStatus status={preferences.is_active} />
 
-            {/* Preferences Card */}
-            <Card className="lg:col-span-2 shadow-lg">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                    Tus Preferencias
-                  </h3>
-                </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                  Configuración actual de tu newsletter personalizado
-                </p>
-              </CardHeader>
-              <CardBody className="space-y-6">
-                {/* Categories */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400">
-                    <Sparkles className="h-4 w-4" />
-                    Categorías de Interés
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {preferences.categories.map((category) => (
-                      <Chip
-                        key={category}
-                        color="primary"
-                        variant="flat"
-                        size="md"
-                        className="capitalize"
-                      >
-                        {category}
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
+            <SettingsPreferences preferences={preferences} />
 
-                {/* Frequency */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400">
-                    <Calendar className="h-4 w-4" />
-                    Frecuencia de Envío
-                  </div>
-                  <p className="text-base font-semibold text-slate-900 dark:text-white capitalize">
-                    {preferences.frequency === "daily"
-                      ? "Diario"
-                      : preferences.frequency === "weekly"
-                      ? "Semanal"
-                      : preferences.frequency}
-                  </p>
-                </div>
+            <QuickActions
+              preferences={preferences}
+              handleUpdatePreferences={handleUpdatePreferences}
+              handleDeactivateNewsletter={handleDeactivateNewsletter}
+              handleActivateNewsletter={handleActivateNewsletter}
+            />
 
-                {/* Email */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400">
-                    <Mail className="h-4 w-4" />
-                    Correo Electrónico
-                  </div>
-                  <p className="text-base font-semibold text-slate-900 dark:text-white">
-                    {preferences.email}
-                  </p>
-                </div>
-
-                {/* Created Date */}
-                <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Suscrito desde:{" "}
-                    {new Date(preferences.created_at).toLocaleDateString(
-                      "es-ES",
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }
-                    )}
-                  </p>
-                </div>
-              </CardBody>
-            </Card>
-
-            {/* Actions Card */}
-            <Card className="shadow-lg">
-              <CardHeader className="pb-3">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Acciones Rápidas
-                </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                  Gestiona tu suscripción
-                </p>
-              </CardHeader>
-              <CardBody className="space-y-3">
-                <Button
-                  onClick={handleUpdatePreferences}
-                  color="primary"
-                  size="lg"
-                  className="w-full"
-                  startContent={<Settings className="h-4 w-4" />}
-                >
-                  Actualizar Preferencias
-                </Button>
-
-                {preferences.is_active ? (
-                  <Button
-                    onClick={handleDeactivateNewsletter}
-                    variant="bordered"
-                    color="warning"
-                    size="lg"
-                    className="w-full"
-                    startContent={<Pause className="h-4 w-4" />}
-                  >
-                    Pausar Newsletter
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleActivateNewsletter}
-                    variant="bordered"
-                    color="success"
-                    size="lg"
-                    className="w-full"
-                    startContent={<Play className="h-4 w-4" />}
-                  >
-                    Reactivar Newsletter
-                  </Button>
-                )}
-
-                <Button
-                  as={Link}
-                  href="/select"
-                  variant="light"
-                  size="lg"
-                  className="w-full"
-                >
-                  Ver Todas las Opciones
-                </Button>
-              </CardBody>
-            </Card>
-
-            {/* Info Card */}
-            <Card className="lg:col-span-3 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 shadow-lg">
-              <CardHeader className="pb-3">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                  ¿Cómo funciona?
-                </h3>
-              </CardHeader>
-              <CardBody>
-                <ul className="space-y-3 text-sm text-slate-700 dark:text-slate-300">
-                  <li className="flex items-start gap-3">
-                    <span className="text-blue-600 dark:text-blue-400 mt-0.5 text-lg">
-                      •
-                    </span>
-                    <span>
-                      Tu newsletter se genera automáticamente basándose en las
-                      categorías que seleccionaste
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-blue-600 dark:text-blue-400 mt-0.5 text-lg">
-                      •
-                    </span>
-                    <span>
-                      Los newsletters se envían a tu correo a las 9 AM según la
-                      frecuencia que elegiste
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-blue-600 dark:text-blue-400 mt-0.5 text-lg">
-                      •
-                    </span>
-                    <span>
-                      Puedes pausar o reanudar tu newsletter en cualquier
-                      momento
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-blue-600 dark:text-blue-400 mt-0.5 text-lg">
-                      •
-                    </span>
-                    <span>
-                      Actualiza tus preferencias cuando quieras para cambiar las
-                      categorías o la frecuencia
-                    </span>
-                  </li>
-                </ul>
-              </CardBody>
-            </Card>
+            <HowWorks />
           </div>
         )}
       </div>
